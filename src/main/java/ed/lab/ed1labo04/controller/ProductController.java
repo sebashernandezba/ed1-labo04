@@ -4,7 +4,6 @@ import ed.lab.ed1labo04.entity.ProductEntity;
 import ed.lab.ed1labo04.model.CreateProductRequest;
 import ed.lab.ed1labo04.model.UpdateProductRequest;
 import ed.lab.ed1labo04.service.ProductService;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,29 +20,32 @@ public class ProductController {
     }
 
     @PostMapping
-    public ResponseEntity<ProductEntity> createProduct(@RequestBody CreateProductRequest createProductRequest) {
+    public ResponseEntity<?> createProduct(@RequestBody CreateProductRequest request) {
         try {
-            return new ResponseEntity<>(productService.createProduct(createProductRequest), HttpStatus.CREATED);
+            ProductEntity product = productService.createProduct(request);
+            return ResponseEntity.status(201).body(product);
         } catch (IllegalArgumentException e) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ProductEntity> updateProduct(@PathVariable long id, @RequestBody UpdateProductRequest updateProductRequest) {
+    public ResponseEntity<?> updateProduct(@PathVariable long id, @RequestBody UpdateProductRequest request) {
         try {
-            return ResponseEntity.ok(productService.updateProduct(id, updateProductRequest));
+            ProductEntity product = productService.updateProduct(id, request);
+            return ResponseEntity.ok(product);
         } catch (IllegalArgumentException e) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<ProductEntity> getProduct(@PathVariable long id) {
         return productService.getProductById(id)
-                .map(ResponseEntity::ok)
+                .map(product -> ResponseEntity.ok().body(product))
                 .orElse(ResponseEntity.notFound().build());
     }
+
 
     @GetMapping
     public ResponseEntity<List<ProductEntity>> getAllProducts() {

@@ -1,20 +1,16 @@
 package ed.lab.ed1labo04.model;
 
-import ed.lab.ed1labo04.entity.CartItem;
-import ed.lab.ed1labo04.entity.ProductEntity;
-
 import java.util.List;
 
 public class CreateCartRequest {
+    private List<CartItemRequest> cartItems;
 
-    private List<CartItem> cartItems;
-
-    public List<CartItem> getCartItems() {
+    public List<CartItemRequest> getCartItems() {
         return cartItems;
     }
 
-    public void setCartItems(List<CartItem> cartItems) {
+    public void setCartItems(List<CartItemRequest> cartItems) {
         this.cartItems = cartItems;
     }
-
 }
+

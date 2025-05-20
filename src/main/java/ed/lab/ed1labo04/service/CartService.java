@@ -1,115 +1,66 @@
 package ed.lab.ed1labo04.service;
 
 import ed.lab.ed1labo04.entity.CartEntity;
-import ed.lab.ed1labo04.entity.CartItem;
+import ed.lab.ed1labo04.entity.CartItemEntity;
 import ed.lab.ed1labo04.entity.ProductEntity;
-import ed.lab.ed1labo04.model.CartItemResponse;
-import ed.lab.ed1labo04.model.CartResponse;
+import ed.lab.ed1labo04.model.CartItemRequest;
 import ed.lab.ed1labo04.model.CreateCartRequest;
 import ed.lab.ed1labo04.repository.CartRepository;
 import ed.lab.ed1labo04.repository.ProductRepository;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 public class CartService {
 
-    private final CartRepository cartRepository;
-    private final ProductService productService;
     private final ProductRepository productRepository;
+    private final CartRepository cartRepository;
 
-    public CartService(CartRepository cartRepository,
-                       ProductService productService,
-                       ProductRepository productRepository) {
-        this.cartRepository = cartRepository;
-        this.productService = productService;
+    public CartService(ProductRepository productRepository, CartRepository cartRepository) {
         this.productRepository = productRepository;
+        this.cartRepository = cartRepository;
     }
 
-    public CartResponse createCart(CreateCartRequest createCartRequest) {
-        List<CartItemResponse> cartResponseItems = new ArrayList<>();
-        Map<Long, Map.Entry<ProductEntity, CartItemResponse>> cartMap = new HashMap<>();
-        double totalPrice = 0.0;
+    public CartEntity createCart(CreateCartRequest request) {
+        List<CartItemEntity> cartItems = new ArrayList<>();
+        double total = 0;
 
-        for (CartItem cartItem : createCartRequest.getCartItems()) {
-            ProductEntity product = productService.getProductById(cartItem.getProductId())
-                    .orElseThrow(() -> new IllegalArgumentException("Product with id " + cartItem.getId() + " not found"));
+        for (CartItemRequest itemRequest : request.getCartItems()) {
+            ProductEntity product = productRepository.findById(itemRequest.getProductId())
+                    .orElseThrow(() -> new IllegalArgumentException("Product not found"));
 
-            if (cartItem.getQuantity() <= 0) {
-                throw new IllegalArgumentException("Quantity must be greater than zero");
+            if (itemRequest.getQuantity() <= 0) {
+                throw new IllegalArgumentException("Quantity must be greater than 0");
             }
 
-            if (product.getQuantity() < cartItem.getQuantity()) {
-                throw new IllegalArgumentException("Product with id " + cartItem.getId() + " has insufficient quantity");
+            if (product.getQuantity() < itemRequest.getQuantity()) {
+                throw new IllegalArgumentException("Not enough inventory for product: " + product.getName());
             }
 
-            CartItemResponse cartItemResponse = new CartItemResponse();
-
-            cartItemResponse.setProductId(product.getId());
-            cartItemResponse.setName(product.getName());
-            cartItemResponse.setPrice(product.getPrice());
-            cartItemResponse.setQuantity(cartItem.getQuantity());
-
-            cartResponseItems.add(cartItemResponse);
-
-            cartMap.put(product.getId(), Map.entry(product, cartItemResponse));
-
-            totalPrice += product.getPrice() * cartItem.getQuantity();
-        }
-
-        CartEntity cartEntity = new CartEntity();
-
-        cartEntity.setCartItems(createCartRequest.getCartItems());
-
-        cartEntity = cartRepository.save(cartEntity);
-
-        CartResponse cartResponse = new CartResponse();
-
-        cartResponse.setId(cartEntity.getId());
-        cartResponse.setCartItems(cartResponseItems);
-        cartResponse.setTotalPrice(totalPrice);
-
-        for (CartItemResponse cartItemResponse : cartResponseItems) {
-            ProductEntity product = cartMap.get(cartItemResponse.getProductId()).getKey();
-            CartItemResponse itemResponse = cartMap.get(product.getId()).getValue();
-
-            product.setQuantity(product.getQuantity() - itemResponse.getQuantity());
-
+            // Restar del inventario
+            product.setQuantity(product.getQuantity() - itemRequest.getQuantity());
             productRepository.save(product);
+
+            CartItemEntity item = new CartItemEntity();
+            item.setProductId(product.getId());
+            item.setName(product.getName());
+            item.setPrice(product.getPrice());
+            item.setQuantity(itemRequest.getQuantity());
+
+            total += product.getPrice() * itemRequest.getQuantity();
+            cartItems.add(item);
         }
 
-        return cartResponse;
+        CartEntity cart = new CartEntity();
+        cart.setCartItems(cartItems);
+        cart.setTotalPrice(total);
+        return cartRepository.save(cart);
     }
 
-    public Optional<CartResponse> getCartById(Long id) {
+    public CartEntity getCartById(Long id) {
         return cartRepository.findById(id)
-                .map(cartEntity -> {
-                    CartResponse cartResponse = new CartResponse();
-
-                    List<CartItemResponse> cartResponseItems = new ArrayList<>();
-                    double totalPrice = 0.0;
-
-                    for (CartItem cartItem : cartEntity.getCartItems()) {
-                        ProductEntity product = productService.getProductById(cartItem.getId())
-                                .orElseThrow(() -> new IllegalStateException("Product with id " + cartItem.getId() + " not found"));
-
-                        CartItemResponse cartItemResponse = new CartItemResponse();
-
-                        cartItemResponse.setName(product.getName());
-                        cartItemResponse.setPrice(product.getPrice());
-                        cartItemResponse.setQuantity(cartItem.getQuantity());
-
-                        cartResponseItems.add(cartItemResponse);
-
-                        totalPrice += product.getPrice() * cartItem.getQuantity();
-                    }
-
-                    cartResponse.setId(cartEntity.getId());
-                    cartResponse.setCartItems(cartResponseItems);
-                    cartResponse.setTotalPrice(totalPrice);
-
-                    return cartResponse;
-                });
+                .orElseThrow(() -> new IllegalArgumentException("Cart not found"));
     }
 }

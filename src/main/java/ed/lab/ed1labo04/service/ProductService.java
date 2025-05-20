@@ -18,31 +18,32 @@ public class ProductService {
         this.productRepository = productRepository;
     }
 
-    public ProductEntity createProduct(CreateProductRequest createProductRequest) {
-        if (createProductRequest.getPrice() <= 0)
+    public ProductEntity createProduct(CreateProductRequest request) {
+        if (request.getPrice() <= 0) {
             throw new IllegalArgumentException("Price must be greater than 0");
+        }
 
-        ProductEntity productEntity = new ProductEntity();
+        ProductEntity product = new ProductEntity();
+        product.setName(request.getName());
+        product.setPrice(request.getPrice());
+        product.setQuantity(0);
 
-        productEntity.setName(createProductRequest.getName());
-        productEntity.setPrice(createProductRequest.getPrice());
-        productEntity.setQuantity(0);
-
-        return productRepository.save(productEntity);
+        return productRepository.save(product);
     }
 
-    public ProductEntity updateProduct(long id, UpdateProductRequest updateProductRequest) {
-        if (updateProductRequest.getPrice() <= 0)
+    public ProductEntity updateProduct(long id, UpdateProductRequest request) {
+        if (request.getPrice() <= 0) {
             throw new IllegalArgumentException("Price must be greater than 0");
-
-        if (updateProductRequest.getQuantity() < 0)
+        }
+        if (request.getQuantity() < 0) {
             throw new IllegalArgumentException("Quantity must be greater or equal to 0");
+        }
 
         ProductEntity product = productRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Product not found"));
 
-        product.setQuantity(updateProductRequest.getQuantity());
-        product.setPrice(updateProductRequest.getPrice());
+        product.setPrice(request.getPrice());
+        product.setQuantity(request.getQuantity());
 
         return productRepository.save(product);
     }
@@ -54,5 +55,4 @@ public class ProductService {
     public Optional<ProductEntity> getProductById(Long id) {
         return productRepository.findById(id);
     }
-
 }

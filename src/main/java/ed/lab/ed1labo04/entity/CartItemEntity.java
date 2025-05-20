@@ -3,12 +3,13 @@ package ed.lab.ed1labo04.entity;
 import jakarta.persistence.*;
 
 @Entity
-public class ProductEntity {
+public class CartItemEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    private Long productId;
     private String name;
     private Double price;
     private int quantity;
@@ -16,6 +17,9 @@ public class ProductEntity {
     // Getters y setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
+
+    public Long getProductId() { return productId; }
+    public void setProductId(Long productId) { this.productId = productId; }
 
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }

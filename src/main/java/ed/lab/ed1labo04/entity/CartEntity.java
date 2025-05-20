@@ -6,26 +6,23 @@ import java.util.List;
 
 @Entity
 public class CartEntity {
+
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @OneToMany(cascade = CascadeType.ALL)
-    private List<CartItem> cartItems;
+    private List<CartItemEntity> cartItems;
 
-    public List<CartItem> getCartItems() {
-        return cartItems;
-    }
+    private Double totalPrice;
 
-    public void setCartItems(List<CartItem> cartItems) {
-        this.cartItems = cartItems;
-    }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+    public List<CartItemEntity> getCartItems() { return cartItems; }
+    public void setCartItems(List<CartItemEntity> cartItems) { this.cartItems = cartItems; }
 
-    public Long getId() {
-        return id;
-    }
+    public Double getTotalPrice() { return totalPrice; }
+    public void setTotalPrice(Double totalPrice) { this.totalPrice = totalPrice; }
 }
+
