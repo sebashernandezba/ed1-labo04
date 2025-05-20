@@ -202,3 +202,68 @@ Para ello, implemente los siguientes endpoints utilizando Spring Boot:
   - Si no existe un carrito de compras asociado al id, el código HTTP será `404`.
 
 **Tip:** Investigue qué hace la anotación `@OneToMany(cascade = CascadeType.ALL)` y cómo pueda ayudarle a relacionar carritos de compras con productos.
+
+### POST /cart:
+
+#### Ejemplo de petición correcta
+```json
+{
+  "cartItems": [
+    {
+      "productId": 1,
+      "quantity": 5
+    },
+    {
+      "productId": 2,
+      "quantity": 10
+    }
+  ]
+}
+```
+
+#### Ejemplo de respuesta exitosa
+```json
+{
+  "id": 1,
+  "cartItems": [
+    {
+      "productId": 1,
+      "name": "Elotes",
+      "price": 10.5,
+      "quantity": 5
+    },
+    {
+      "productId": 2,
+      "name": "Tomates",
+      "price": 10.5,
+      "quantity": 10
+    }
+  ],
+  "totalPrice": 157.5
+}
+```
+
+### GET /cart/{id}
+
+#### Ejemplo de respuesta exitosa
+```json
+{
+  "id": 1,
+  "cartItems": [
+    {
+      "productId": 0,
+      "name": "Elotes",
+      "price": 10.5,
+      "quantity": 5
+    },
+    {
+      "productId": 0,
+      "name": "Tomates",
+      "price": 10.5,
+      "quantity": 10
+    }
+  ],
+  "totalPrice": 157.5
+}
+```
+
